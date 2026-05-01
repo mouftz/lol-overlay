@@ -1,0 +1,44 @@
+body {
+    background-color: #0f1419;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #e0e0e0;
+    padding: 40px;
+    display: flex;
+}
+
+#cards-container {
+    display: flex;
+    gap: 12px;
+}
+
+.player-card {
+    background-color: #1a1f2e;
+    border: 1px solid #2a3142;
+    border-radius: 8px;
+    padding: 16px;
+    width: 240px;
+    flex: 0 0 240px;
+}
+
+.player-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.tagline {
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.player-rank {
+    color: #f5b942;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.player-stats {
+    color: #9ca3af;
+    font-size: 13px;
+}
