@@ -20,6 +20,35 @@ body {
     backdrop-filter: blur(8px);  /* frosted glass effect */
 }
 
+.recent-trend {
+    margin-top: 10px;
+}
+
+.trend-dots {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 4px;
+}
+
+.dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.dot.win {
+    background-color: #22c55e;
+}
+
+.dot.loss {
+    background-color: #ef4444;
+}
+
+.trend-label {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
 .player-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
 .tagline { color: #6b7280; font-weight: 400; }
 .player-rank { color: #f5b942; font-size: 14px; font-weight: 500; margin-bottom: 8px; }

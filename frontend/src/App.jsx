@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import './App.css';
 
 function PlayerCard({ player }) {
+    const matches = player.recent_matches;
+    
     return (
         <div className="player-card">
             <div className="player-name">
@@ -11,6 +13,18 @@ function PlayerCard({ player }) {
             <div className="player-stats">
                 {player.wins}W · {player.losses}L · {player.winrate}% WR
             </div>
+            {matches.results.length > 0 && (
+                <div className="recent-trend">
+                    <div className="trend-dots">
+                        {matches.results.map((win, i) => (
+                            <span key={i} className={`dot ${win ? 'win' : 'loss'}`} />
+                        ))}
+                    </div>
+                    <div className="trend-label">
+                        Last {matches.results.length}: {matches.winrate}% WR
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -22,7 +36,7 @@ function App() {
     useEffect(() => {
         async function checkChampSelect() {
             try {
-                const response = await fetch("http://127.0.0.1:8000/champ-select?region=euw");
+                const response = await fetch("http://127.0.0.1:8000/champ-select");
                 const data = await response.json();
                 setInChampSelect(data.in_champ_select);
                 setPlayers(data.players);
@@ -32,7 +46,7 @@ function App() {
         }
         
         checkChampSelect();  // run once immediately
-        const interval = setInterval(checkChampSelect, 3000);  // then every 3 seconds
+        const interval = setInterval(checkChampSelect, 15000);  // was 3000
         return () => clearInterval(interval);  // cleanup on unmount
     }, []);
 
