@@ -1,55 +1,157 @@
+/* === Container === */
 body {
-    background-color: transparent;  /* let game show through */
-    color: #e0e0e0;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     margin: 0;
-    padding: 8px;
+    background: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    color: #e4e4e7;
 }
 
 .cards-container {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+    padding: 8px;
 }
 
+.status-text {
+    font-size: 11px;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 4px;
+    width: 100%;
+}
+
+/* === Card === */
 .player-card {
-    background-color: rgba(26, 31, 46, 0.92);  /* slightly transparent */
-    border: 1px solid #2a3142;
-    border-radius: 8px;
-    padding: 12px;
-    flex: 0 0 220px;
-    backdrop-filter: blur(8px);  /* frosted glass effect */
+    background: rgba(20, 22, 30, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 180px;
+    max-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.15s ease;
 }
 
+.player-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Team-color borders when in-game */
+.player-card.team-order {
+    border-left: 2px solid #3b82f6; /* blue */
+}
+
+.player-card.team-chaos {
+    border-left: 2px solid #ef4444; /* red */
+}
+
+/* Dimmed when dead */
+.player-card.dead {
+    opacity: 0.55;
+}
+
+/* === Header === */
+.player-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fafafa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tagline {
+    color: #71717a;
+    font-weight: 400;
+    margin-left: 1px;
+}
+
+/* === Rank === */
+.player-rank {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fbbf24; /* warm gold */
+    letter-spacing: 0.02em;
+}
+
+.player-rank.unranked {
+    color: #71717a;
+}
+
+/* === Stats line === */
+.player-stats {
+    font-size: 11px;
+    color: #a1a1aa;
+}
+
+/* === Recent trend === */
 .recent-trend {
-    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 2px;
 }
 
 .trend-dots {
     display: flex;
     gap: 3px;
-    margin-bottom: 4px;
 }
 
 .dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
 }
 
 .dot.win {
-    background-color: #22c55e;
+    background: #22c55e;
 }
 
 .dot.loss {
-    background-color: #ef4444;
+    background: #ef4444;
 }
 
 .trend-label {
-    font-size: 11px;
-    color: #9ca3af;
+    font-size: 10px;
+    color: #71717a;
 }
 
-.player-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.tagline { color: #6b7280; font-weight: 400; }
-.player-rank { color: #f5b942; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
-.player-stats { color: #9ca3af; font-size: 13px; }
+/* === Live in-game stats === */
+.live-stats {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.live-champ {
+    font-size: 11px;
+    color: #d4d4d8;
+    font-weight: 500;
+}
+
+.live-champ .level {
+    color: #71717a;
+    font-weight: 400;
+}
+
+.live-kda {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fafafa;
+    font-variant-numeric: tabular-nums;
+}
+
+.respawn-timer {
+    font-size: 10px;
+    color: #ef4444;
+    font-weight: 500;
+}

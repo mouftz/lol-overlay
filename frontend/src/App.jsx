@@ -4,12 +4,17 @@ import './App.css';
 function PlayerCard({ player }) {
     const matches = player.recent_matches;
     
+    const rankClasses = ['player-rank'];
+    if (player.rank === 'Unranked' || player.rank === 'Unknown') {
+        rankClasses.push('unranked');
+    }
+    
     return (
         <div className="player-card">
             <div className="player-name">
                 {player.name}<span className="tagline">#{player.tagline}</span>
             </div>
-            <div className="player-rank">{player.rank}</div>
+            <div className={rankClasses.join(' ')}>{player.rank}</div>
             <div className="player-stats">
                 {player.wins}W · {player.losses}L · {player.winrate}% WR
             </div>
@@ -21,7 +26,7 @@ function PlayerCard({ player }) {
                         ))}
                     </div>
                     <div className="trend-label">
-                        Last {matches.results.length}: {matches.winrate}% WR
+                        Last {matches.results.length} · {matches.winrate}% WR
                     </div>
                 </div>
             )}
@@ -30,30 +35,39 @@ function PlayerCard({ player }) {
 }
 
 function App() {
+    const [state, setState] = useState("idle");
     const [players, setPlayers] = useState([]);
-    const [inChampSelect, setInChampSelect] = useState(false);
 
     useEffect(() => {
-        async function checkChampSelect() {
+        async function fetchState() {
             try {
                 const response = await fetch("http://127.0.0.1:8000/champ-select");
                 const data = await response.json();
-                setInChampSelect(data.in_champ_select);
-                setPlayers(data.players);
+                setState(data.state);
+                setPlayers(data.players || []);
             } catch (err) {
                 console.error("Backend not reachable", err);
             }
         }
         
-        checkChampSelect();  // run once immediately
-        const interval = setInterval(checkChampSelect, 15000);  // was 3000
-        return () => clearInterval(interval);  // cleanup on unmount
-    }, []);
+        fetchState();
+        const intervalMs = state === "loading" || state === "champ_select" ? 5000 : 15000;
+        const interval = setInterval(fetchState, intervalMs);
+        return () => clearInterval(interval);
+    }, [state]);
 
     return (
         <div className="cards-container">
-            {!inChampSelect && <p>Waiting for champ select...</p>}
-            {players.map((p, i) => <PlayerCard key={i} player={p} />)}
+            {state === "in_game" ? null : (
+                <>
+                    <div className="status-text">
+                        {state === "idle" && "Waiting…"}
+                        {state === "loading" && "Loading screen"}
+                        {state === "champ_select" && "Champ select"}
+                    </div>
+                    {players.map((p, i) => <PlayerCard key={i} player={p} />)}
+                </>
+            )}
         </div>
     );
 }

@@ -204,6 +204,20 @@ def get_lcu_region():
         return data['region'].lower()
     except Exception:
         return None
+    
+def get_gameflow_phase():
+    """Get the current LCU gameflow phase (Lobby, ChampSelect, InProgress, etc)."""
+    try:
+        port, password = get_lcu_credentials()
+        url = f"https://127.0.0.1:{port}/lol-gameflow/v1/gameflow-phase"
+        response = httpx.get(url, auth=("riot", password), verify=False, timeout=2.0)
+        
+        if response.status_code != 200:
+            return None
+        
+        return response.json()
+    except Exception:
+        return None
 
 def get_lcu_credentials():
     with open(LOCKFILE_PATH, "r") as f:
@@ -233,18 +247,54 @@ def get_champ_select_players():
      except (FileNotFoundError, Exception):
         return None
 
+def get_live_game_data():
+    """Fetch live in-game data. Returns None if not in a game."""
+    try:
+        gamestats_url = "https://127.0.0.1:2999/liveclientdata/gamestats"
+        playerlist_url = "https://127.0.0.1:2999/liveclientdata/playerlist"
+        
+        gamestats_resp = httpx.get(gamestats_url, verify=False, timeout=2.0)
+        if gamestats_resp.status_code != 200:
+            return None
+        
+        playerlist_resp = httpx.get(playerlist_url, verify=False, timeout=2.0)
+        if playerlist_resp.status_code != 200:
+            return None
+        
+        gamestats = gamestats_resp.json()
+        playerlist = playerlist_resp.json()
+        
+        live_players = {}
+        for p in playerlist:
+            key = f"{p['riotIdGameName']}#{p['riotIdTagLine']}"
+            live_players[key] = {
+                "champion": p['championName'],
+                "level": p['level'],
+                "kills": p['scores']['kills'],
+                "deaths": p['scores']['deaths'],
+                "assists": p['scores']['assists'],
+                "cs": p['scores']['creepScore'],
+                "items": [item['displayName'] for item in p.get('items', [])],
+                "team": p['team'],
+                "is_dead": p['isDead'],
+                "respawn_timer": p['respawnTimer'],
+                "is_bot": p['isBot'],
+            }
+        
+        return {
+            "game_time": gamestats['gameTime'],
+            "game_mode": gamestats['gameMode'],
+            "players": live_players
+        }
+    except (httpx.ConnectError, httpx.TimeoutException):
+        return None
+    except Exception:
+        return None
+
 @app.get("/champ-select")
 async def champ_select(region: str = None):
-    # auto-detect from LCU if no region param given
     if region is None:
         region = get_lcu_region() or "na"
-    
-    result = get_champ_select_players()
-    if not result:
-        return {"in_champ_select": False, "players": [], "queue_id": 0, "region": region}
-    
-    players = result["players"]
-    queue_id = result["queue_id"]
     
     region_map = {
         "na": ("na1", "americas"),
@@ -254,11 +304,94 @@ async def champ_select(region: str = None):
     }
     
     if region not in region_map:
-        return {"in_champ_select": False, "players": [], "queue_id": 0, "region": region, "error": f"Unsupported region: {region}"}
+        return {"state": "idle", "players": [], "region": region, "error": f"Unsupported region: {region}"}
     
     platform, riot_region = region_map[region]
+    phase = get_gameflow_phase()
     
-    calls = [get_player_info_solo(p["name"], p["tagline"], platform, riot_region, queue_id) for p in players]
-    results = await asyncio.gather(*calls)
+    if phase == "InProgress":
+        live = get_live_game_data()
+        
+        if live is None:
+            # Loading screen — game launched but Live Client API isn't up yet.
+            cs_result = get_champ_select_players()
+            if cs_result:
+                cs_players = cs_result["players"]
+                queue_id = cs_result["queue_id"]
+                calls = [get_player_info_solo(p["name"], p["tagline"], platform, riot_region, queue_id) for p in cs_players]
+                results = await asyncio.gather(*calls)
+                return {
+                    "state": "loading",
+                    "players": results,
+                    "region": region,
+                    "queue_id": queue_id
+                }
+            # No champ-select so just idle
+            return {"state": "loading", "players": [], "region": region}
+        
+        # Game actually running 
+        return {"state": "in_game", "players": [], "region": region, "game_time": live["game_time"]}
     
-    return {"in_champ_select": True, "players": results, "queue_id": queue_id, "region": region}
+    if phase == "ChampSelect":
+        cs_result = get_champ_select_players()
+        if cs_result:
+            cs_players = cs_result["players"]
+            queue_id = cs_result["queue_id"]
+            calls = [get_player_info_solo(p["name"], p["tagline"], platform, riot_region, queue_id) for p in cs_players]
+            results = await asyncio.gather(*calls)
+            return {
+                "state": "champ_select",
+                "players": results,
+                "region": region,
+                "queue_id": queue_id
+            }
+    
+    return {"state": "idle", "players": [], "region": region}
+
+@app.get("/live-game")
+def live_game():
+    """Fetch live in-game data from the Live Client API."""
+    try:
+        # Live Client API runs on a fixed port, no auth, self-signed cert
+        gamestats_url = "https://127.0.0.1:2999/liveclientdata/gamestats"
+        playerlist_url = "https://127.0.0.1:2999/liveclientdata/playerlist"
+        
+        gamestats_resp = httpx.get(gamestats_url, verify=False, timeout=2.0)
+        if gamestats_resp.status_code != 200:
+            return {"in_game": False}
+        
+        playerlist_resp = httpx.get(playerlist_url, verify=False, timeout=2.0)
+        if playerlist_resp.status_code != 200:
+            return {"in_game": False}
+        
+        gamestats = gamestats_resp.json()
+        playerlist = playerlist_resp.json()
+        
+        live_players = {}
+        for p in playerlist:
+            key = f"{p['riotIdGameName']}#{p['riotIdTagLine']}"
+            live_players[key] = {
+                "champion": p['championName'],
+                "level": p['level'],
+                "kills": p['scores']['kills'],
+                "deaths": p['scores']['deaths'],
+                "assists": p['scores']['assists'],
+                "cs": p['scores']['creepScore'],
+                "items": [item['displayName'] for item in p.get('items', [])],
+                "team": p['team'],  # "ORDER" or "CHAOS"
+                "is_dead": p['isDead'],
+                "respawn_timer": p['respawnTimer'],
+                "is_bot": p['isBot'],
+            }
+        
+        return {
+            "in_game": True,
+            "game_time": gamestats['gameTime'],
+            "game_mode": gamestats['gameMode'],
+            "players": live_players
+        }
+    except (httpx.ConnectError, httpx.TimeoutException):
+        # Not in a game — Live Client API isn't running
+        return {"in_game": False}
+    except Exception as e:
+        return {"in_game": False, "error": str(e)}
