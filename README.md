@@ -1,6 +1,6 @@
-# LoL Overlay
+# MacScout
 
-A native macOS desktop overlay for League of Legends that auto-detects every stage of the matchmaking flow and surfaces real-time stats — rank, winrate, recent match history, and live in-game data — for every player in your lobby. Inspired by [Porofessor](https://porofessor.gg) and [OP.GG Desktop](https://op.gg/desktop), which don't ship Mac builds.
+A native macOS desktop overlay for League of Legends that auto-detects every stage of the matchmaking flow and surfaces real-time stats — rank, winrate, recent match history, and live in-game data for every player in your lobby. Inspired by [Porofessor](https://porofessor.gg) and [OP.GG Desktop](https://op.gg/desktop), which don't ship Mac builds.
 
 ## Features
 
