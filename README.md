@@ -98,5 +98,4 @@ Note that personal dev keys expire every 24 hours.
 
 ## Why this exists
 
-Every major LoL stats overlay (OP.GG Desktop, Porofessor, Mobalytics, Blitz) is Windows-only. Mac players have to alt-tab to a browser. This project closes that gap and was a chance to build something against three completely different APIs (a local websocket-ish auth flow, an undocumented localhost endpoint, and a public REST API), unify them behind one schema, and make it feel instant through aggressive caching.
-```
+Every major LoL stats overlay (OP.GG Desktop, Porofessor, Mobalytics) is Windows-only. Mac players have to alt-tab to a browser. This project closes that gap and was a chance to build something against three completely different APIs (a local websocket-ish auth flow, an undocumented localhost endpoint, and a public REST API).
