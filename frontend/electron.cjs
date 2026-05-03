@@ -1,11 +1,15 @@
 const { app, BrowserWindow, globalShortcut, screen } = require('electron');
 
+// Set app name early — affects macOS menu bar, dock, About panel, etc.
+app.setName('MacScout');
+
 let win;
 
 function createWindow() {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     
     win = new BrowserWindow({
+        title: 'MacScout',
         width: width,
         height: height,
         x: 0,
@@ -26,6 +30,9 @@ function createWindow() {
 
     // Make the window click-through everywhere
     win.setIgnoreMouseEvents(true, { forward: true });
+    
+    // Keep visible when League goes fullscreen on macOS
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 }
 
 app.whenReady().then(() => {

@@ -3,6 +3,7 @@ import './App.css';
 
 function PlayerCard({ player }) {
     const matches = player.recent_matches;
+    const trends = player.trends;
     
     const rankClasses = ['player-rank'];
     if (player.rank === 'Unranked' || player.rank === 'Unknown') {
@@ -11,6 +12,11 @@ function PlayerCard({ player }) {
     
     return (
         <div className="player-card">
+            {trends?.tag && (
+                <div className={`tag tag-${trends.tag.toLowerCase().replace(/[^a-z]/g, '-')}`}>
+                    {trends.tag}
+                </div>
+            )}
             <div className="player-name">
                 {player.name}<span className="tagline">#{player.tagline}</span>
             </div>
@@ -18,6 +24,33 @@ function PlayerCard({ player }) {
             <div className="player-stats">
                 {player.wins}W · {player.losses}L · {player.winrate}% WR
             </div>
+            
+            {trends?.avg_kda && (
+                <div className="trends-section">
+                    <div className="trend-row">
+                        <span className="trend-label-sm">KDA</span>
+                        <span className="trend-value">
+                            {trends.avg_kda.kills} / {trends.avg_kda.deaths} / {trends.avg_kda.assists}
+                            <span className="kda-ratio">  {trends.kda_ratio}</span>
+                        </span>
+                    </div>
+                    {trends.avg_cs_per_min !== null && trends.avg_cs_per_min > 0 && (
+                        <div className="trend-row">
+                            <span className="trend-label-sm">CS/min</span>
+                            <span className="trend-value">{trends.avg_cs_per_min}</span>
+                        </div>
+                    )}
+                    {trends.mains.length > 0 && (
+                        <div className="trend-row">
+                            <span className="trend-label-sm">Mains</span>
+                            <span className="trend-value">
+                                {trends.mains.map(m => m.champion).join(' · ')}
+                            </span>
+                        </div>
+                    )}
+                </div>
+            )}
+            
             {matches.results.length > 0 && (
                 <div className="recent-trend">
                     <div className="trend-dots">
